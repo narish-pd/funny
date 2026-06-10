@@ -239,6 +239,190 @@ body {
   color: var(--accent);
 }
 
+.dice-options {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.toggle-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-option input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-track {
+  position: relative;
+  width: 48px;
+  height: 26px;
+  background: var(--surface2);
+  border-radius: 999px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  background: var(--text);
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.toggle-option input:checked + .toggle-track {
+  background: var(--accent2);
+}
+
+.toggle-option input:checked + .toggle-track .toggle-thumb {
+  transform: translateX(22px);
+}
+
+.toggle-label {
+  font-weight: 600;
+}
+
+.option-hint {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin-top: 0.4rem;
+}
+
+.dice-cup-arena {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 1rem 0 1.5rem;
+  transition: background 0.3s;
+}
+
+.dice-cup-arena.cup-mode {
+  background: radial-gradient(ellipse at center bottom, rgba(30, 41, 59, 0.9), transparent 70%);
+  border-radius: var(--radius);
+}
+
+.dice-cup-arena.cup-mode .dice-cup-rim {
+  opacity: 1;
+}
+
+.dice-cup-rim {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(100%, 320px);
+  height: 24px;
+  border: 3px solid #64748b;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.dice-cup-lid {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s, transform 0.45s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+.cup-mode .dice-cup-lid {
+  opacity: 1;
+}
+
+.dice-cup-lid.is-closed {
+  transform: translate(-50%, -50%);
+}
+
+.cup-mode .dice-cup-lid:not(.is-closed) {
+  transform: translate(-50%, calc(-50% - 130px)) rotate(-12deg);
+  opacity: 0;
+}
+
+.lid-closing .dice-cup-lid {
+  animation: lidDrop 0.35s ease-in forwards;
+}
+
+.lid-opening .dice-cup-lid {
+  animation: lidLift 0.55s ease-out forwards;
+}
+
+@keyframes lidDrop {
+  from { transform: translate(-50%, calc(-50% - 130px)) rotate(-12deg); opacity: 0; }
+  to { transform: translate(-50%, -50%); opacity: 1; }
+}
+
+@keyframes lidLift {
+  from { transform: translate(-50%, -50%); opacity: 1; }
+  to { transform: translate(-50%, calc(-50% - 140px)) rotate(-15deg); opacity: 0; }
+}
+
+.lid-dome {
+  width: min(280px, 90vw);
+  height: 100px;
+  background: linear-gradient(180deg, #94a3b8, #64748b);
+  border-radius: 50% 50% 12px 12px;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.45),
+    inset 0 4px 8px rgba(255, 255, 255, 0.2);
+}
+
+.lid-knob {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(145deg, #cbd5e1, #94a3b8);
+  border-radius: 50%;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+.cup-mode.lid-closed .dice-area {
+  filter: blur(6px) brightness(0.5);
+  pointer-events: none;
+}
+
+.dice-cup-arena.is-shaking {
+  animation: cupShake 0.12s linear infinite;
+}
+
+@keyframes cupShake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-2deg) translateX(-3px); }
+  75% { transform: rotate(2deg) translateX(3px); }
+}
+
+.dice-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.reveal-btn {
+  background: linear-gradient(135deg, var(--accent2), #10b981);
+  color: #064e3b;
+}
+
 .dice-area {
   display: flex;
   flex-wrap: wrap;
@@ -247,6 +431,9 @@ body {
   min-height: 100px;
   padding: 1.25rem 0;
   perspective: 800px;
+  position: relative;
+  z-index: 1;
+  transition: filter 0.35s;
 }
 
 .dice-area.is-rolling .dice-scene {
