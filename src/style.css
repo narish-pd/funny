@@ -27,6 +27,50 @@ body {
     var(--bg);
 }
 
+/* SEO fallback — ซ่อนเมื่อ JS โหลดแล้ว */
+html.js-loaded .seo-fallback {
+  display: none;
+}
+
+.seo-fallback {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem;
+  color: var(--text);
+}
+
+.seo-fallback h1 {
+  font-size: 1.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.seo-fallback h2 {
+  font-size: 1.1rem;
+  margin: 1.25rem 0 0.5rem;
+  color: var(--muted);
+}
+
+.seo-fallback p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.seo-fallback ul {
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.seo-fallback a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.seo-fallback a:hover {
+  text-decoration: underline;
+}
+
 #app {
   max-width: 520px;
   margin: 0 auto;

@@ -6,8 +6,10 @@ import { renderCoin } from './games/coin'
 import { renderWheel } from './games/wheel'
 import { renderPicker } from './games/picker'
 import { renderMines } from './games/mines'
+import { updateSEO } from './seo'
+import type { GameId } from './types'
 
-export type GameId = 'home' | 'dice' | 'crocodile' | 'coin' | 'wheel' | 'picker' | 'mines'
+export type { GameId } from './types'
 
 const GAMES: Record<GameId, () => void> = {
   home: renderHome,
@@ -19,19 +21,35 @@ const GAMES: Record<GameId, () => void> = {
   mines: renderMines,
 }
 
-export function navigate(id: GameId) {
-  history.pushState({ game: id }, '', id === 'home' ? '/' : `#${id}`)
+const GAME_IDS = new Set(Object.keys(GAMES))
+
+function resolveGame(): GameId {
+  const segment = location.pathname.replace(/^\/+|\/+$/g, '')
+  if (!segment) return 'home'
+  return GAME_IDS.has(segment) ? (segment as GameId) : 'home'
+}
+
+export function navigate(id: GameId, replace = false) {
+  const path = id === 'home' ? '/' : `/${id}`
+  if (replace) history.replaceState({ game: id }, '', path)
+  else history.pushState({ game: id }, '', path)
+  updateSEO(id)
   GAMES[id]()
 }
 
 window.addEventListener('popstate', () => {
-  const id = getGameFromHash()
+  const id = resolveGame()
+  updateSEO(id)
   GAMES[id]()
 })
 
-function getGameFromHash(): GameId {
-  const hash = location.hash.replace('#', '') as GameId
-  return hash in GAMES ? hash : 'home'
-}
+document.documentElement.classList.add('js-loaded')
+document.getElementById('static-seo')?.remove()
 
-navigate(getGameFromHash())
+const initial = resolveGame()
+const segment = location.pathname.replace(/^\/+|\/+$/g, '')
+if (segment && !GAME_IDS.has(segment)) {
+  navigate('home', true)
+} else {
+  navigate(initial, true)
+}

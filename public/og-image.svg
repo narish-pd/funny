@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#134e4a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <text x="600" y="220" text-anchor="middle" font-size="120" font-family="Arial,sans-serif"><²=
+<¡</text>
+  <text x="600" y="340" text-anchor="middle" fill="#fbbf24" font-size="72" font-weight="bold" font-family="Arial,sans-serif">Funny Box</text>
+  <text x="600" y="420" text-anchor="middle" fill="#f8fafc" font-size="36" font-family="Arial,sans-serif">@!*8H!A%0-"%9@K2--D%L#5</text>
+  <text x="600" y="500" text-anchor="middle" fill="#94a3b8" font-size="28" font-family="Arial,sans-serif">-"%9@K2 · #@I · +!8'%I- · 1	%2 · @!#0@4</text>
+</svg>
