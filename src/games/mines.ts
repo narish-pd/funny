@@ -2,6 +2,7 @@ import './mines.css'
 import { mountPage, pageShell } from './layout'
 
 type GameState = 'setup' | 'playing' | 'won' | 'lost'
+type MineMode = 'instant' | 'survive'
 
 interface Cell {
   isMine: boolean
@@ -27,6 +28,32 @@ function shuffle<T>(arr: T[]): T[] {
   return a
 }
 
+function bombMarkup(extraClass = '') {
+  return `<span class="cell-bomb ${extraClass}" aria-hidden="true">
+    <span class="bomb-spark"></span>
+    <span class="bomb-fuse"></span>
+    <span class="bomb-body"><span class="bomb-highlight"></span></span>
+  </span>`
+}
+
+function safeMarkup() {
+  return `<span class="cell-safe" aria-hidden="true">
+    <span class="safe-glow"></span>
+    <span class="safe-icon"></span>
+  </span>`
+}
+
+function hiddenMarkup() {
+  return `<span class="cell-cover" aria-hidden="true"><span class="cell-shine"></span></span>`
+}
+
+function cellContent(cell: Cell, isLostUnrevealed: boolean): string {
+  if (cell.revealed && cell.isMine) return bombMarkup('is-active')
+  if (isLostUnrevealed) return bombMarkup('is-dimmed')
+  if (cell.revealed) return safeMarkup()
+  return hiddenMarkup()
+}
+
 function createBoard(total: number, mines: number): Cell[] {
   const indices = shuffle(Array.from({ length: total }, (_, i) => i))
   const mineSet = new Set(indices.slice(0, mines))
@@ -39,22 +66,32 @@ function createBoard(total: number, mines: number): Cell[] {
 export function renderMines() {
   let totalBlocks = DEFAULT_BLOCKS
   let mineCount = DEFAULT_MINES
+  let mineMode: MineMode = 'instant'
   let cells: Cell[] = []
   let gameState: GameState = 'setup'
   let openedCount = 0
+  let minesHit = 0
 
   const shell = pageShell('กล่องระเบิด', '💣', `
     <p class="game-hint">เปิดทีละช่อง หลีกเลี่ยงระเบิดให้ครบทุกช่องปลอดภัย!</p>
     <div class="mines-setup" id="mines-setup">
       <div class="mines-inputs">
         <label class="mines-field">
-          <span>จำนวนบล็อกทั้งหมด</span>
+          <span>บล็อกทั้งหมด</span>
           <input type="number" id="blocks-input" min="${MIN_BLOCKS}" max="${MAX_BLOCKS}" value="${DEFAULT_BLOCKS}" />
         </label>
         <label class="mines-field">
-          <span>จำนวนระเบิด</span>
+          <span>ระเบิด</span>
           <input type="number" id="mines-input" min="${MIN_MINES}" value="${DEFAULT_MINES}" />
         </label>
+      </div>
+      <div class="mines-mode">
+        <span class="mines-mode-label">เมื่อเจอระเบิด</span>
+        <div class="mode-picker">
+          <button type="button" class="mode-btn active" data-mode="instant">จบทันที</button>
+          <button type="button" class="mode-btn" data-mode="survive">เล่นต่อจนครบ</button>
+        </div>
+        <p class="mines-mode-hint" id="mode-hint">เจอระเบิด 1 ลูก = Game Over</p>
       </div>
       <p class="mines-error" id="mines-error" hidden></p>
       <button class="primary-btn" id="start-btn" type="button">▶ Start Game</button>
@@ -63,6 +100,9 @@ export function renderMines() {
       <div class="stat-chip"><span class="stat-label">บล็อก</span><strong id="stat-blocks">${DEFAULT_BLOCKS}</strong></div>
       <div class="stat-chip"><span class="stat-label">ระเบิด</span><strong id="stat-mines">${DEFAULT_MINES}</strong></div>
       <div class="stat-chip"><span class="stat-label">เปิดแล้ว</span><strong id="stat-opened">0</strong></div>
+      <div class="stat-chip stat-hit" id="stat-hit-chip" hidden>
+        <span class="stat-label">โดนแล้ว</span><strong id="stat-hit">0</strong>
+      </div>
     </div>
     <div class="mines-board-wrap">
       <div class="mines-board" id="mines-board"></div>
@@ -82,6 +122,9 @@ export function renderMines() {
   const statBlocks = shell.querySelector('#stat-blocks')!
   const statMines = shell.querySelector('#stat-mines')!
   const statOpened = shell.querySelector('#stat-opened')!
+  const statHitChip = shell.querySelector<HTMLElement>('#stat-hit-chip')!
+  const statHit = shell.querySelector('#stat-hit')!
+  const modeHint = shell.querySelector('#mode-hint')!
   const board = shell.querySelector<HTMLElement>('#mines-board')!
 
   function safeTotal() {
@@ -100,13 +143,27 @@ export function renderMines() {
     return null
   }
 
+  function updateModeHint() {
+    const mines = Number(minesInput.value) || DEFAULT_MINES
+    modeHint.textContent =
+      mineMode === 'instant'
+        ? 'เจอระเบิด 1 ลูก = Game Over'
+        : `เจอระเบิดได้จนครบ ${mines} ลูก ถึงจะจบเกม`
+  }
+
   function updateStats() {
     statBlocks.textContent = String(totalBlocks)
     statMines.textContent = String(mineCount)
     statOpened.textContent = String(openedCount)
+    if (mineMode === 'survive' && gameState === 'playing') {
+      statHitChip.hidden = false
+      statHit.textContent = `${minesHit}/${mineCount}`
+    } else if (gameState !== 'playing') {
+      statHitChip.hidden = true
+    }
   }
 
-  function setMessage(text: string, type: 'win' | 'lose' | '') {
+  function setMessage(text: string, type: 'win' | 'lose' | 'warn' | '') {
     if (!text) {
       messageEl.hidden = true
       messageEl.textContent = ''
@@ -124,15 +181,16 @@ export function renderMines() {
     board.innerHTML = cells
       .map((cell, i) => {
         let cls = 'mine-cell'
+        const isLostUnrevealed = gameState === 'lost' && cell.isMine && !cell.revealed
         if (cell.revealed) {
           cls += cell.isMine ? ' revealed mine' : ' revealed safe'
-        } else if (gameState === 'lost' && cell.isMine) {
+        } else if (isLostUnrevealed) {
           cls += ' revealed mine show-mine'
         } else {
           cls += ' hidden'
         }
         if (gameState === 'won' || gameState === 'lost') cls += ' locked'
-        const content = cell.revealed && cell.isMine ? '💣' : cell.revealed ? '✓' : ''
+        const content = cellContent(cell, isLostUnrevealed)
         return `<button type="button" class="${cls}" data-index="${i}" ${gameState !== 'playing' || cell.revealed ? 'disabled' : ''}>${content}</button>`
       })
       .join('')
@@ -142,10 +200,22 @@ export function renderMines() {
     })
   }
 
+  function setMode(mode: MineMode) {
+    if (gameState === 'playing') return
+    mineMode = mode
+    shell.querySelectorAll<HTMLButtonElement>('.mode-btn').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.mode === mode)
+    })
+    updateModeHint()
+  }
+
   function lockInputs(locked: boolean) {
     blocksInput.disabled = locked
     minesInput.disabled = locked
     startBtn.disabled = locked
+    shell.querySelectorAll<HTMLButtonElement>('.mode-btn').forEach((btn) => {
+      btn.disabled = locked
+    })
   }
 
   function startGame() {
@@ -163,6 +233,7 @@ export function renderMines() {
 
     cells = createBoard(totalBlocks, mineCount)
     openedCount = 0
+    minesHit = 0
     gameState = 'playing'
     lockInputs(true)
     restartBtn.style.display = 'inline-flex'
@@ -174,6 +245,10 @@ export function renderMines() {
   function endGame(won: boolean) {
     gameState = won ? 'won' : 'lost'
     setMessage(won ? 'You Win' : 'Game Over', won ? 'win' : 'lose')
+    statHitChip.hidden = false
+    if (!won && mineMode === 'survive') {
+      statHit.textContent = `${minesHit}/${mineCount}`
+    }
     paintBoard()
   }
 
@@ -188,14 +263,22 @@ export function renderMines() {
 
     setTimeout(() => {
       if (cell.isMine) {
-        openedCount = cells.filter((c) => c.revealed && !c.isMine).length
+        minesHit++
         updateStats()
-        endGame(false)
+
+        if (mineMode === 'instant' || minesHit >= mineCount) {
+          endGame(false)
+          return
+        }
+
+        setMessage(`โดนระเบิด ${minesHit}/${mineCount} — เล่นต่อได้`, 'warn')
+        paintBoard()
         return
       }
 
       openedCount++
       updateStats()
+      setMessage('', '')
       paintBoard()
 
       const safeTotal = totalBlocks - mineCount
@@ -207,12 +290,17 @@ export function renderMines() {
     gameState = 'setup'
     cells = []
     openedCount = 0
+    minesHit = 0
     lockInputs(false)
     restartBtn.style.display = 'none'
     setMessage('', '')
     updateStats()
     board.innerHTML = '<p class="mines-placeholder">กด Start Game เพื่อเริ่ม</p>'
   }
+
+  shell.querySelectorAll<HTMLButtonElement>('.mode-btn').forEach((btn) => {
+    btn.addEventListener('click', () => setMode(btn.dataset.mode as MineMode))
+  })
 
   blocksInput.addEventListener('input', () => {
     errorEl.hidden = true
@@ -221,16 +309,19 @@ export function renderMines() {
     if (Number(minesInput.value) >= total) minesInput.value = String(total - 1)
     statBlocks.textContent = String(total)
     statMines.textContent = minesInput.value
+    updateModeHint()
   })
 
   minesInput.addEventListener('input', () => {
     errorEl.hidden = true
     statMines.textContent = minesInput.value
+    updateModeHint()
   })
 
   startBtn.addEventListener('click', startGame)
   restartBtn.addEventListener('click', restart)
 
+  updateModeHint()
   board.innerHTML = '<p class="mines-placeholder">กด Start Game เพื่อเริ่ม</p>'
   updateStats()
 }

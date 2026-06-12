@@ -135,14 +135,6 @@ export function renderCrocodile() {
           ).join('')}
         </div>
       </div>
-      <div class="setting-group">
-        <label>จำนวนผู้เล่น (แค่โชว์)</label>
-        <div class="stepper">
-          <button id="players-minus" type="button">−</button>
-          <span id="players-count">${players}</span>
-          <button id="players-plus" type="button">+</button>
-        </div>
-      </div>
     </div>
     <div class="croc-scene">
       <div class="croc-head" id="croc-jaw" data-teeth="${toothCount}">
