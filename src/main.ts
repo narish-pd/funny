@@ -1,4 +1,5 @@
 import './style.css'
+import { registerSW } from 'virtual:pwa-register'
 import { renderHome } from './games/home'
 import { renderDice } from './games/dice'
 import { renderCrocodile } from './games/crocodile'
@@ -7,6 +8,7 @@ import { renderWheel } from './games/wheel'
 import { renderPicker } from './games/picker'
 import { renderMines } from './games/mines'
 import { updateSEO } from './seo'
+import { setupInstallPrompt } from './install-prompt'
 import type { GameId } from './types'
 
 export type { GameId } from './types'
@@ -42,6 +44,9 @@ window.addEventListener('popstate', () => {
   updateSEO(id)
   GAMES[id]()
 })
+
+registerSW({ immediate: true })
+setupInstallPrompt()
 
 document.documentElement.classList.add('js-loaded')
 document.getElementById('static-seo')?.remove()
