@@ -5,8 +5,9 @@ import { renderCrocodile } from './games/crocodile'
 import { renderCoin } from './games/coin'
 import { renderWheel } from './games/wheel'
 import { renderPicker } from './games/picker'
+import { renderMines } from './games/mines'
 
-export type GameId = 'home' | 'dice' | 'crocodile' | 'coin' | 'wheel' | 'picker'
+export type GameId = 'home' | 'dice' | 'crocodile' | 'coin' | 'wheel' | 'picker' | 'mines'
 
 const GAMES: Record<GameId, () => void> = {
   home: renderHome,
@@ -15,6 +16,7 @@ const GAMES: Record<GameId, () => void> = {
   coin: renderCoin,
   wheel: renderWheel,
   picker: renderPicker,
+  mines: renderMines,
 }
 
 export function navigate(id: GameId) {

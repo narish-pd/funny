@@ -3,9 +3,10 @@ import { navigate } from '../main'
 const GAMES = [
   { id: 'dice' as const, emoji: '🎲', title: 'ทอยลูกเต๋า', desc: 'เลือกจำนวนลูก แล้วทอยพร้อมแอนิเมชัน' },
   { id: 'crocodile' as const, emoji: '🐊', title: 'จรเข้อ้าปาก', desc: 'กดฟันทีละซี่ ใครโดนงับแพ้!' },
-  { id: 'coin' as const, emoji: '🪙', title: 'โยนเหรียญ', desc: 'หัวหรือก้อย ตัดสินใจให้เร็วขึ้น' },
+  { id: 'mines' as const, emoji: '💣', title: 'กล่องระเบิด', desc: 'เปิดทีละช่อง หลีกเลี่ยงระเบิดให้ครบ!' },
   { id: 'wheel' as const, emoji: '🎡', title: 'หมุนวงล้อ', desc: 'ใส่ตัวเลือกแล้วให้วงล้อตัดสิน' },
   { id: 'picker' as const, emoji: '🎯', title: 'จับฉลาก', desc: 'สุ่มชื่อคนหรือรายการจากลิสต์' },
+  { id: 'coin' as const, emoji: '🪙', title: 'โยนเหรียญ', desc: 'หัวหรือก้อย ตัดสินใจให้เร็วขึ้น' },
 ]
 
 export function renderHome() {
