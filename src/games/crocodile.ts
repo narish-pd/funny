@@ -162,14 +162,6 @@ export function renderCrocodile() {
     btn.addEventListener('click', () => setToothCount(Number(btn.dataset.count)))
   })
 
-  shell.querySelector('#players-minus')!.addEventListener('click', () => {
-    players = Math.max(2, players - 1)
-    shell.querySelector('#players-count')!.textContent = String(players)
-  })
-  shell.querySelector('#players-plus')!.addEventListener('click', () => {
-    players = Math.min(10, players + 1)
-    shell.querySelector('#players-count')!.textContent = String(players)
-  })
   shell.querySelector('#croc-reset')!.addEventListener('click', reset)
   shell.querySelector('#croc-new-game')!.addEventListener('click', reset)
 
